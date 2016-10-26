@@ -1,23 +1,23 @@
-var path = require('path');
-var fs = require('fs');
-var express = require('express');
-//var favicon = require('serve-favicon');
-var http = require('http');
-var https = require('https');
-var forceSSL = require('express-force-ssl');
-var app = express();
-var proxy = require('http-proxy-middleware');
+var path           = require('path');
+var fs             = require('fs');
+var express        = require('express');
+//var favicon       = require('serve-favicon');
+var http           = require('http');
+var https          = require('https');
+var forceSSL       = require('express-force-ssl');
+var app            = express();
+var proxy          = require('http-proxy-middleware');
 //https://github.com/expressjs/morgan
 //var morgan = require('morgan');
 
-var config = require('./config');
+var config         = require('./config');
 var privateKey, certificate;
-var exec = require('child_process').exec;
+var exec           = require('child_process').exec;
 
-var bodyParser     =         require("body-parser");
-var RESTPATH       =         '/rest';
-var alexa          =         require('alexa-app');
-var alexaVerifier  =         require('alexa-verifier');
+var bodyParser     = require("body-parser");
+var RESTPATH       = '/rest';
+var alexa          = require('alexa-app');
+var alexaVerifier  = require('alexa-verifier');
 var respMessage;
 
 // Default Ports
@@ -97,12 +97,12 @@ app.use(config.ords.path,proxy(
 
 app.get('/uptime', function(req, res, next){
   exec("uptime", function(err,out,stderr) {
-	if (!err) {
-		res.send(out);
-	} else {
-		console.log(err,stderr);
-		res.send(err,stderr);
-	}
+  if (!err) {
+    res.send(out);
+  } else {
+    console.log(err,stderr);
+    res.send(err,stderr);
+  }
   })
 });
 
@@ -187,9 +187,21 @@ app.get('/', function(req, res, next){
 //Start server
 var server = http.createServer(app).listen(PORTS.HTTP,function(){
   console.log('Server Ready');
+  console.log('On error check that Apache is not already running.');
 });
 
 var io = require('socket.io')(http).listen(server);
+
+//now that we have io, we can attach a route that uses socket
+app.set('socketIo',io);
+
+//Test with Postman post ruepprich.com/test
+app.route('/test').post(function(req,res){
+  var soc = req.app.get('socketIo');
+  soc.emit('pong','yowsa!');
+  res.send('test route');
+  res.end();
+})
 
 io.on('connection', function(socket){
   console.log('a user connected.');
