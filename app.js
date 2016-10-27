@@ -134,7 +134,38 @@ app.use(bodyParser.json());
 
 
 
-app.post(RESTPATH+'/alexaTest', requestVerifier, function(req, res) {
+// Make sure this is last as it will forward to APEX
+app.get('/', function(req, res, next){
+  // console.log('in / forward');
+  // console.log('req.headers.origin:', req.headers);
+  res.redirect(config.ords.path);
+});
+
+
+
+//Start server
+var server = http.createServer(app).listen(PORTS.HTTP,function(){
+  console.log('Server Ready');
+  console.log('On error check that Apache is not already running.');
+});
+
+var io = require('socket.io')(http).listen(server);
+
+//now that we have io, we can attach a route that uses socket
+//see http://bit.ly/2f83ql9
+app.set('socketIo',io);
+
+//Test with Postman post ruepprich.com/test
+app.route('/test').post(function(req,res){
+  var soc = req.app.get('socketIo');
+  soc.emit('pong','yowsa!');
+  res.send('test route');
+  res.end();
+})
+
+app.route(RESTPATH+'/alexaTest').post( function(req, res) {
+
+  var soc = req.app.get('socketIo');
   console.log('Type',req.body.request.type,req.body.request.intent.name);
 
   if (req.body.request.type === 'LaunchRequest') { /* ... */ }
@@ -150,6 +181,8 @@ app.post(RESTPATH+'/alexaTest', requestVerifier, function(req, res) {
     var firstName = req.body.request.intent.slots.firstName.value;
     var lastName = req.body.request.intent.slots.lastName.value;
     var slots = Object.keys(req.body.request.intent.slots).length;
+
+    soc.emit('pong',firstName+" "+lastName);
 
     console.log('firstName',firstName);
     console.log('lastName',lastName);
@@ -173,35 +206,6 @@ app.post(RESTPATH+'/alexaTest', requestVerifier, function(req, res) {
 });
 
 
-
-
-// Make sure this is last as it will forward to APEX
-app.get('/', function(req, res, next){
-  // console.log('in / forward');
-  // console.log('req.headers.origin:', req.headers);
-  res.redirect(config.ords.path);
-});
-
-
-
-//Start server
-var server = http.createServer(app).listen(PORTS.HTTP,function(){
-  console.log('Server Ready');
-  console.log('On error check that Apache is not already running.');
-});
-
-var io = require('socket.io')(http).listen(server);
-
-//now that we have io, we can attach a route that uses socket
-app.set('socketIo',io);
-
-//Test with Postman post ruepprich.com/test
-app.route('/test').post(function(req,res){
-  var soc = req.app.get('socketIo');
-  soc.emit('pong','yowsa!');
-  res.send('test route');
-  res.end();
-})
 
 io.on('connection', function(socket){
   console.log('a user connected.');
