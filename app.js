@@ -153,6 +153,8 @@ app.get('/', function(req, res, next){
 var server = http.createServer(app).listen(PORTS.HTTP,function(){
   console.log('Server Ready');
   console.log('On error check that Apache is not already running.');
+  console.log('Test the skill with:');
+  console.log('Alexa, ask apex to get employee seventyfour ninetynine');
 });
 
 var io = require('socket.io')(http).listen(server);
@@ -218,41 +220,32 @@ app.route(RESTPATH+'/alexaTest').post( function(req, res) {
                     // "Hmm, what firstName do you want to know the forecast for?"
                   }
                   var empid = req.body.request.intent.slots.empid.value;
-                  var resMsg;
+                  var cardMsg,speechMsg;
                   //console.log('empid',empid);
                   restClient.get("https://ruepprich.com/ords/obe/hr/employees/"+empid, function (data, response) {
                       // parsed response body as js object
 
-                      resMsg = 'Employee '+data.empno+' is '+data.ename;
-                      console.log('resMsg',resMsg);
-                      // raw response
-                      //console.log(response);
-                      // res.json({
-                      //            "version": "1.0",
-                      //            "response": {
-                      //              "shouldEndSession": true,
-                      //              "outputSpeech": {
-                      //                "type": "SSML",
-                      //                "ssml": "<speak>"+resMsg+"</speak>",
-                      //             "card": {
-                      //               "type": "Simple",
-                      //               "title": "Example of the Card Title",
-                      //               "content": "Example of card content. This card has just plain text content.\nThe content is formatted with line breaks to improve readability."
-                      //             }
-                      //              }
-                      //            }
-                      // });
+                      if (typeof data.ename != 'undefined') {
+                        cardMsg = 'Name: '+data.ename;
+                        speechMsg = 'The name of employee '+empid+' is '+data.ename;
+                        console.log('cardMsg',cardMsg);
+                      } else {
+                        cardMsg = 'There is no employee with that ID.';
+                        speechMsg = cardMsg;
+                      }
+
+
                       res.json({
                                 "version": "1.0",
                                 "response": {
                                   "outputSpeech": {
                                       "type":"SSML"
-                                      ,"ssml": "<speak>"+resMsg+"</speak>",
+                                      ,"ssml": "<speak>"+speechMsg+"</speak>",
                                   },
                                   "card": {
                                     "type": "Simple",
                                     "title": "APEX Employee "+empid,
-                                    "content": "Query result:\nName: "+data.ename
+                                    "content": "Query result:\n"+cardMsg
                                   }
                                 }
                       });
