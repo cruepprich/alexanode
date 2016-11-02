@@ -20,6 +20,12 @@ var alexa          = require('alexa-app');
 var alexaVerifier  = require('alexa-verifier');
 var respMessage;
 
+var RESTClient = require('node-rest-client').Client;
+var restClient = new RESTClient();
+
+//allow self signed certs
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 // Default Ports
 var PORTS = {
   HTTP: config.web.http.port || 80,
@@ -173,39 +179,96 @@ app.route(RESTPATH+'/alexaTest').post( function(req, res) {
   else if (req.body.request.type === 'IntentRequest' &&
            req.body.request.intent.name === 'NumberOfOrdersForCustomer') {
 
-    if (!req.body.request.intent.slots.firstName ||
-        !req.body.request.intent.slots.firstName.value) {
-      // Handle this error by producing a response like:
-      // "Hmm, what firstName do you want to know the forecast for?"
-    }
-    var firstName = req.body.request.intent.slots.firstName.value;
-    var lastName = req.body.request.intent.slots.lastName.value;
-    var slots = Object.keys(req.body.request.intent.slots).length;
+                if (!req.body.request.intent.slots.firstName ||
+                    !req.body.request.intent.slots.firstName.value) {
+                  // Handle this error by producing a response like:
+                  // "Hmm, what firstName do you want to know the forecast for?"
+                }
+                var firstName = req.body.request.intent.slots.firstName.value;
+                var lastName = req.body.request.intent.slots.lastName.value;
+                var slots = Object.keys(req.body.request.intent.slots).length;
 
-    soc.emit('pong',firstName+" "+lastName);
+                soc.emit('pong',firstName+" "+lastName);
 
-    console.log('firstName',firstName);
-    console.log('lastName',lastName);
-    console.log('slots',slots);
-    respMessage = 'Hello '+firstName+" "+lastName;
-    // Do your business logic to get weather data here!
-    // Then send a JSON response...
+                console.log('firstName',firstName);
+                console.log('lastName',lastName);
+                console.log('slots',slots);
+                respMessage = 'Hello '+firstName+" "+lastName;
+                // Do your business logic to get weather data here!
+                // Then send a JSON response...
 
-    res.json({
-      "version": "1.0",
-      "response": {
-        "shouldEndSession": true,
-        "outputSpeech": {
-          "type": "SSML",
-          "ssml": "<speak>"+respMessage+"</speak>"
-        }
-      }
-    });
-  }
-  res.end('done');
+                res.json({
+                  "version": "1.0",
+                  "response": {
+                    "shouldEndSession": true,
+                    "outputSpeech": {
+                      "type": "SSML",
+                      "ssml": "<speak>"+respMessage+"</speak>"
+                    }
+                  }
+                });
+
+                res.end('done');
+              }
+  else if (req.body.request.type === 'IntentRequest' &&
+           req.body.request.intent.name === 'GetEmployeeID') {
+                  if (!req.body.request.intent.slots.empid ||
+                    !req.body.request.intent.slots.empid.value) {
+                    // Handle this error by producing a response like:
+                    // "Hmm, what firstName do you want to know the forecast for?"
+                  }
+                  var empid = req.body.request.intent.slots.empid.value;
+                  var resMsg;
+                  //console.log('empid',empid);
+                  restClient.get("https://ruepprich.com/ords/obe/hr/employees/"+empid, function (data, response) {
+                      // parsed response body as js object
+
+                      resMsg = 'Employee '+data.empno+' is '+data.ename;
+                      console.log('resMsg',resMsg);
+                      // raw response
+                      //console.log(response);
+                      // res.json({
+                      //            "version": "1.0",
+                      //            "response": {
+                      //              "shouldEndSession": true,
+                      //              "outputSpeech": {
+                      //                "type": "SSML",
+                      //                "ssml": "<speak>"+resMsg+"</speak>",
+                      //             "card": {
+                      //               "type": "Simple",
+                      //               "title": "Example of the Card Title",
+                      //               "content": "Example of card content. This card has just plain text content.\nThe content is formatted with line breaks to improve readability."
+                      //             }
+                      //              }
+                      //            }
+                      // });
+                      res.json({
+                                "version": "1.0",
+                                "response": {
+                                  "outputSpeech": {
+                                      "type":"SSML"
+                                      ,"ssml": "<speak>"+resMsg+"</speak>",
+                                  },
+                                  "card": {
+                                    "type": "Simple",
+                                    "title": "APEX Employee "+empid,
+                                    "content": "Query result:\nName: "+data.ename
+                                  }
+                                }
+                      });
+                      res.end('done');
+
+                  });
+
+
+            }
 });
 
+app.route(RESTPATH+'/getTest').get( function(req, res) {
 
+  console.log('getTest',req);
+  res.end('done');
+});
 
 io.on('connection', function(socket){
   console.log('a user connected.');
