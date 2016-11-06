@@ -153,8 +153,9 @@ app.get('/', function(req, res, next){
 var server = http.createServer(app).listen(PORTS.HTTP,function(){
   console.log('Server Ready');
   console.log('On error check that Apache is not already running.');
+  console.log('APEX runs on Jackie. Workspace hr,cruepprich, G_22, app 102');
   console.log('Test the skill with:');
-  console.log('Alexa, ask apex to get employee seventyfour ninetynine');
+  console.log('Alexa, ask apex to get employee onehundred');
 });
 
 var io = require('socket.io')(http).listen(server);
@@ -221,19 +222,76 @@ app.route(RESTPATH+'/alexaTest').post( function(req, res) {
                   }
                   var empid = req.body.request.intent.slots.empid.value;
                   var cardMsg,speechMsg;
-                  //console.log('empid',empid);
-                  restClient.get("https://ruepprich.com/ords/obe/hr/employees/"+empid, function (data, response) {
-                      // parsed response body as js object
-
-                      if (typeof data.ename != 'undefined') {
-                        cardMsg = 'Name: '+data.ename;
-                        speechMsg = 'The name of employee '+empid+' is '+data.ename;
+                  console.log('req empid value ['+empid+']');
+                  var restURL = "https://ruepprich.com/ords/hr/alexa/employees/"+empid;
+                  console.log('restURL',restURL);
+                  //Fetch result via REST
+                  restClient.get(restURL, function (data, response) {
+                      
+                      // parse response body as js object
+                      if (typeof data.items[0] != 'undefined') {
+                        var emp = data.items[0];
+                        var name = emp.first_name+' '+emp.last_name;
+                        cardMsg = 'Name: '+name;
+                        speechMsg = 'The name of employee '+empid+' is '+name;
                         console.log('cardMsg',cardMsg);
                       } else {
-                        cardMsg = 'There is no employee with that ID.';
+                        cardMsg = 'There is no employee with that ID. ['+empid+']';
                         speechMsg = cardMsg;
                       }
 
+                      soc.emit('card',cardMsg);
+                      soc.emit('empid',empid);
+
+                      res.json({
+                                "version": "1.0",
+                                "response": {
+                                  "outputSpeech": {
+                                      "type":"SSML"
+                                      ,"ssml": "<speak>"+speechMsg+"</speak>",
+                                  },
+                                  "card": {
+                                    "type": "Simple",
+                                    "title": "APEX Employee "+empid,
+                                    "content": "Query result:\n"+cardMsg
+                                  }
+                                }
+                      });
+                      res.end('done');
+
+                  });
+
+
+            }
+else if (req.body.request.type === 'IntentRequest' &&
+           req.body.request.intent.name === 'GetEmployeesInDept') {
+                  if (!req.body.request.intent.slots.empid ||
+                    !req.body.request.intent.slots.empid.value) {
+                    // Handle this error by producing a response like:
+                    // "Hmm, what firstName do you want to know the forecast for?"
+                  }
+                  var empid = req.body.request.intent.slots.empid.value;
+                  var cardMsg,speechMsg;
+                  console.log('req empid value ['+empid+']');
+                  var restURL = "https://ruepprich.com/ords/hr/alexa/employees/"+empid;
+                  console.log('restURL',restURL);
+                  //Fetch result via REST
+                  restClient.get(restURL, function (data, response) {
+                      
+                      // parse response body as js object
+                      if (typeof data.items[0] != 'undefined') {
+                        var emp = data.items[0];
+                        var name = emp.first_name+' '+emp.last_name;
+                        cardMsg = 'Name: '+name;
+                        speechMsg = 'The name of employee '+empid+' is '+name;
+                        console.log('cardMsg',cardMsg);
+                      } else {
+                        cardMsg = 'There is no employee with that ID. ['+empid+']';
+                        speechMsg = cardMsg;
+                      }
+
+                      soc.emit('card',cardMsg);
+                      soc.emit('empid',empid);
 
                       res.json({
                                 "version": "1.0",
