@@ -270,28 +270,27 @@ else if (req.body.request.type === 'IntentRequest' &&
                     // Handle this error by producing a response like:
                     // "Hmm, what firstName do you want to know the forecast for?"
                   }
-                  var empid = req.body.request.intent.slots.empid.value;
+                  var department_id = req.body.request.intent.slots.department_id.value;
                   var cardMsg,speechMsg;
-                  console.log('req empid value ['+empid+']');
-                  var restURL = "https://ruepprich.com/ords/hr/alexa/employees/"+empid;
+                  console.log('req department_id value ['+department_id+']');
+                  var restURL = "https://ruepprich.com/ords/hr/alexa/department_emps/"+department_id;
                   console.log('restURL',restURL);
                   //Fetch result via REST
                   restClient.get(restURL, function (data, response) {
-                      
+                  speechMsg = 'Getting employees for department '+department_id;
+
                       // parse response body as js object
                       if (typeof data.items[0] != 'undefined') {
-                        var emp = data.items[0];
-                        var name = emp.first_name+' '+emp.last_name;
-                        cardMsg = 'Name: '+name;
-                        speechMsg = 'The name of employee '+empid+' is '+name;
+                        var totalemps = data.items.length;
+                        cardMsg = 'Department '+department_id+' has '+totalemps+' Employees';
+                        speechMsg = cardMsg;
                         console.log('cardMsg',cardMsg);
                       } else {
-                        cardMsg = 'There is no employee with that ID. ['+empid+']';
+                        cardMsg = 'There is no department with that ID. ['+empid+']';
                         speechMsg = cardMsg;
                       }
 
-                      soc.emit('card',cardMsg);
-                      soc.emit('empid',empid);
+                      soc.emit('department_id',department_id);
 
                       res.json({
                                 "version": "1.0",
@@ -302,7 +301,7 @@ else if (req.body.request.type === 'IntentRequest' &&
                                   },
                                   "card": {
                                     "type": "Simple",
-                                    "title": "APEX Employee "+empid,
+                                    "title": "APEX Employees In Department "+department_id,
                                     "content": "Query result:\n"+cardMsg
                                   }
                                 }
