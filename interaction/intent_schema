@@ -1,0 +1,65 @@
+{
+  "intents": [
+    {
+      "intent": "GetFirstEventIntent",
+      "slots": [
+        {
+          "name": "day",
+          "type": "AMAZON.DATE"
+        }
+      ]
+    },
+    {
+      "intent": "NumberOfOrdersForCustomer",
+      "slots": [
+        {
+          "name": "firstName",
+          "type": "AMAZON.US_FIRST_NAME"
+        },
+        {
+          "name": "lastName",
+          "type": "LIST_OF_LAST_NAMES"
+        },
+        {
+          "name": "customer",
+          "type": "LIST_OF_CUSTOMERS"
+        }
+      ]
+    },
+    {
+      "intent": "NumberOfItemsForCustomer",
+      "slots": [
+        {
+          "name": "firstName",
+          "type": "AMAZON.US_FIRST_NAME"
+        },
+        {
+          "name": "lastName",
+          "type": "LIST_OF_LAST_NAMES"
+        },
+        {
+          "name": "customer",
+          "type": "LIST_OF_CUSTOMERS"
+        }
+      ]
+    },
+    {
+      "intent": "GetEmployeeID",
+      "slots": [
+        {
+          "name": "empid",
+          "type": "AMAZON.FOUR_DIGIT_NUMBER"
+        }
+      ]
+    },
+    {
+      "intent": "AMAZON.HelpIntent"
+    },
+    {
+      "intent": "AMAZON.StopIntent"
+    },
+    {
+      "intent": "AMAZON.CancelIntent"
+    }
+  ]
+}
