@@ -1,0 +1,42 @@
+{
+  "name": "alexanode",
+  "version": "1.0.0",
+  "description": "Testing alexa with node.js and APEX",
+  "main": "app.js",
+  "scripts": {
+    "test": "sudo node app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cruepprich/alexanode.git"
+  },
+  "keywords": [
+    "alexa",
+    "node.js",
+    "apex",
+    "oracle"
+  ],
+  "author": "Christoph Ruepprich",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cruepprich/alexanode/issues"
+  },
+  "homepage": "https://github.com/cruepprich/alexanode#readme",
+  "dependencies": {
+    "alexa-app": "^3.2.0",
+    "alexa-verifier": "^0.3.0",
+    "body-parser": "^1.16.1",
+    "child_process": "^1.0.2",
+    "express": "^4.14.1",
+    "express-force-ssl": "^0.3.2",
+    "fs": "0.0.1-security",
+    "http": "0.0.0",
+    "http-proxy-middleware": "^0.17.3",
+    "https": "^1.0.0",
+    "morgan": "^1.8.1",
+    "node-rest-client": "^2.5.0",
+    "path": "^0.12.7",
+    "serve-favicon": "^2.4.0",
+    "socket.io": "^1.7.3"
+  }
+}
